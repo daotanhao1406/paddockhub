@@ -1,12 +1,10 @@
 import { TileLayer } from 'react-leaflet'
 
-import { usePaddockStore } from '@/stores/use-paddock-store'
-/**
- * Component con quản lý lớp bản đồ nền (Base Map).
- * Render có điều kiện các <TileLayer> dựa trên state.
- */
-export default function BaseMapManager() {
-  const { baseLayerType } = usePaddockStore()
+export default function BaseMapLayer({
+  hasBoundariesAndLabels = true,
+}: {
+  hasBoundariesAndLabels?: boolean
+}) {
   return (
     <>
       <TileLayer
@@ -14,7 +12,7 @@ export default function BaseMapManager() {
         attribution='Imagery © Esri, Maxar'
         maxZoom={19}
       />
-      {baseLayerType === 'hybrid' && (
+      {hasBoundariesAndLabels && (
         <TileLayer
           url='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
           attribution='Labels © Esri'

@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { download } from '@/lib/utils'
 import { useMailtoFallback } from '@/hooks/use-mailto-fallback'
 
-import { usePaddockStore } from '@/store/use-paddock-store'
+import { usePaddockStore } from '@/stores/use-paddock-store'
 
 export function Step4Save() {
   const [isSaving, setIsSaving] = useState(false)

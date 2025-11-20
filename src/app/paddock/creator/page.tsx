@@ -3,12 +3,16 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-const PaddockCreator = dynamic(
+import LoadingComponent from '@/components/ui/loading-component'
+
+const CreateFarmForm = dynamic(
   () =>
-    import('@/components/paddock-creator').then((mod) => mod.PaddockCreator),
+    import('@/elements/farm/create/create-farm-form').then(
+      (mod) => mod.default,
+    ),
   {
     ssr: false,
-    loading: () => <p className='text-center p-10'>Loading map...</p>,
+    loading: () => <LoadingComponent />,
   },
 )
 
@@ -21,8 +25,8 @@ export default function PaddockCreatorPage() {
         email us a copy. We’ll also save it securely on our side.
       </p>
 
-      <Suspense fallback={<p>Loading component...</p>}>
-        <PaddockCreator />
+      <Suspense fallback={<LoadingComponent />}>
+        <CreateFarmForm />
       </Suspense>
     </main>
   )

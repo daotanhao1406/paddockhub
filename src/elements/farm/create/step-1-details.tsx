@@ -9,7 +9,7 @@ import {
   SelectItem,
 } from '@heroui/react'
 
-import { usePaddockStore } from '@/store/use-paddock-store'
+import { usePaddockStore } from '@/stores/use-paddock-store'
 
 export function Step1Details() {
   const { farmDetails, setFarmDetails } = usePaddockStore()

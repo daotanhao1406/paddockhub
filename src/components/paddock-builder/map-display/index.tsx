@@ -20,7 +20,7 @@ import BaseMapManager from '@/components/paddock-builder/map-display/base-map-ma
 import LegendOverlay from '@/components/paddock-builder/map-display/legend-overlay'
 
 // Store & Types
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
 // Components con
 import { MapOverlayControls } from './map-overlay-controls'

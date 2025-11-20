@@ -9,7 +9,7 @@ import { MapDisplay } from '@/components/paddock-builder/map-display'
 import { TrendsChart } from '@/components/paddock-builder/trends-chart'
 import CardNav, { CardNavItem } from '@/components/ui/card-nav'
 
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
 import PaddockForecastPage from '@/app/paddock/forecast/page'
 

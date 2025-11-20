@@ -21,7 +21,7 @@ import { useMemo, useState } from 'react'
 import { colorFromName } from '@/lib/paddock-utils'
 import { cn } from '@/lib/utils'
 
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
 type Props = {
   allPaddocks: string[]

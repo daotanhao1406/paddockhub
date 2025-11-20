@@ -1,160 +1,88 @@
-// ./components/paddock-forecast/forecast-map-display.tsx
+// components/paddock-forecast/forecast-map-display.tsx
 'use client'
 
-import { Button } from '@heroui/react'
-import L, {
-  FeatureGroup as LeafletFeatureGroup,
-  LatLngExpression,
-} from 'leaflet'
-import { useEffect, useRef, useState } from 'react'
-import { FeatureGroup, MapContainer, useMap } from 'react-leaflet'
-import 'leaflet-defaulticon-compatibility'
+import L from 'leaflet'
+import { Tag } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { MapContainer } from 'react-leaflet'
 
-// CSS (chỉ cần các file cơ bản)
-import 'leaflet/dist/leaflet.css'
-import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css'
+import AutoFitBounds from '@/components/map-display/auto-fit-bounds'
+import BaseMapLayer from '@/components/map-display/base-map-layer'
+import { LeafletControl } from '@/components/map-display/leaflet-control'
+import { MapActionButton } from '@/components/map-display/map-action-button'
+import PaddockLabelLayer from '@/components/map-display/paddock-label-layer'
+import { PolygonPaddockLayer } from '@/components/map-display/polygon-paddock-layer'
 
-import { PaddockFeature } from '@/lib/types'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
-import BaseMapManager from '@/components/paddock-builder/map-display/base-map-manager'
-
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
-
-interface PaddockLayer extends L.Polygon {
-  feature?: PaddockFeature
-}
-
-/**
- * Component con quản lý hiển thị paddock (chỉ đọc) cho trang Forecast.
- * Sẽ tô màu paddock được chọn và làm mờ (grey out) các paddock khác.
- */
-function ForecastPaddockManager({
-  selectedPaddockName,
-  showPaddockNames,
-}: {
-  selectedPaddockName: string | undefined
-  showPaddockNames: boolean
-}) {
-  const map = useMap()
-  const { paddocks } = usePaddockBuilderStore() // Chỉ cần paddocks
-  const featureGroupRef = useRef<LeafletFeatureGroup>(null)
-
-  // --- 1. Nạp Paddock TỪ STORE vào BẢN ĐỒ (Đã cập nhật logic style) ---
-  useEffect(() => {
-    const fg = featureGroupRef.current
-    if (!fg) return
-
-    fg.clearLayers()
-    paddocks.features.forEach((feature) => {
-      // 1. Tạo nhóm layer VỚI STYLE ĐỘNG
-      const geoJsonGroup = L.geoJSON(feature, {
-        style: (feature) => {
-          if (!feature) return {} // An toàn
-          const isSelected = feature.properties.name === selectedPaddockName
-          const showAll = selectedPaddockName === null
-
-          // Nếu là "Hiển thị tất cả" HOẶC đây là paddock được chọn
-          if (showAll || isSelected) {
-            // Sử dụng style màu từ PaddockLayerManager (đã được gán màu forecast)
-            return {
-              color: feature.properties.color || '#3b82f6',
-              weight: 2,
-              fillOpacity: 0.4, // Hơi đậm hơn để nổi bật
-            }
-          } else {
-            // Nếu là paddock khác, làm mờ nó đi
-            return {
-              color: '#9ca3af', // Xám
-              weight: 1,
-              fillOpacity: 0.1,
-              fillColor: '#9ca3af',
-            }
-          }
-        },
-      })
-
-      // 2. Lấy layer con
-      const layer = geoJsonGroup.getLayers()[0] as PaddockLayer
-
-      if (layer) {
-        layer.feature = feature
-
-        if (showPaddockNames) {
-          layer.bindTooltip(feature.properties.name || 'Unnamed', {
-            permanent: true,
-            direction: 'center',
-            className: 'paddock-label',
-          })
-        }
-        fg.addLayer(layer)
-      }
-    })
-
-    // --- 2. LOGIC TỰ ĐỘNG ZOOM (Giữ nguyên) ---
-    // if (fg.getLayers().length > 0) {
-    //   try {
-    //     const bounds = fg.getBounds()
-    //     map.fitBounds(bounds.pad(0.1))
-    //   } catch {
-    //     // Bỏ qua lỗi
-    //   }
-    // }
-  }, [paddocks, map, selectedPaddockName, showPaddockNames])
-
-  useEffect(() => {
-    const fg = featureGroupRef.current
-    // Chỉ zoom khi paddocks thay đổi (lần đầu tải)
-    if (!fg || fg.getLayers().length === 0) return
-
-    try {
-      const bounds = fg.getBounds()
-      map.fitBounds(bounds.pad(0.1))
-    } catch {
-      // Bỏ qua lỗi
-    }
-  }, [paddocks, map, selectedPaddockName])
-
-  return <FeatureGroup ref={featureGroupRef} />
-}
-
-// --- Component ForecastMapDisplay chính ---
-
-interface ForecastMapDisplayProps {
-  selectedPaddockName: string | undefined
-}
+// Import các component tái sử dụng
 
 export function ForecastMapDisplay({
   selectedPaddockName,
-}: ForecastMapDisplayProps) {
-  const [showPaddockNames, setShowPaddockNames] = useState(false)
-  const defaultCenter: LatLngExpression = [-25.3, 135.1] // Tọa độ Úc
+}: {
+  selectedPaddockName: string | null
+}) {
+  const { paddocks } = usePaddockBuilderStore()
+  const [showLabels, setShowLabels] = useState(false)
+  const featureGroupRef = useRef<L.FeatureGroup>(null)
+
+  // Hàm style tùy chỉnh cho Forecast (Logic highlight/dim)
+  const getForecastStyle = (feature: any) => {
+    const isSelected = feature.properties.name === selectedPaddockName
+    const showAll = selectedPaddockName === null
+
+    if (showAll || isSelected) {
+      return {
+        color: feature.properties.color || '#3b82f6',
+        weight: 2,
+        fillOpacity: 0.4,
+      }
+    } else {
+      return {
+        color: '#9ca3af',
+        weight: 1,
+        fillOpacity: 0.1,
+        fillColor: '#9ca3af',
+      }
+    }
+  }
 
   return (
-    <div className='h-[446px] w-full relative'>
+    <div className='h-full w-full relative'>
       <MapContainer
-        center={defaultCenter}
+        center={[-25.3, 135.1]}
         zoom={5}
         style={{ height: '100%', width: '100%' }}
-        className='rounded-md border z-0'
       >
-        {/* 1. Quản lý TileLayer (hybrid, satellite) */}
-        <BaseMapManager />
+        <BaseMapLayer />
 
-        {/* 2. Quản lý Paddocks (Vẽ, Sửa, Xóa, Tải) */}
-        <ForecastPaddockManager
-          selectedPaddockName={selectedPaddockName}
-          showPaddockNames={showPaddockNames}
+        {/* Render Paddocks với Style tùy chỉnh */}
+        <PolygonPaddockLayer
+          ref={featureGroupRef}
+          paddocks={paddocks}
+          getStyle={getForecastStyle}
+        />
+
+        <LeafletControl position='topleft'>
+          <MapActionButton
+            icon={Tag}
+            label='Show paddock name'
+            isActive={showLabels}
+            onClick={() => setShowLabels((prev) => !prev)}
+          />
+        </LeafletControl>
+
+        {/* Logic phụ trợ (Labels & Zoom) */}
+        <PaddockLabelLayer
+          featureGroupRef={featureGroupRef}
+          showLabels={showLabels}
+          dependencies={[paddocks, selectedPaddockName]} // Re-scan label khi data đổi
+        />
+        <AutoFitBounds
+          featureGroupRef={featureGroupRef}
+          dependencies={selectedPaddockName} // Zoom khi data đổi
         />
       </MapContainer>
-      <div className='absolute top-2 right-2 z-[98]'>
-        <Button
-          className='bg-white shadow-md'
-          variant='bordered'
-          onPress={() => setShowPaddockNames(!showPaddockNames)}
-        >
-          {showPaddockNames ? 'Hide Labels' : 'Show Labels'}
-        </Button>
-      </div>
     </div>
   )
 }

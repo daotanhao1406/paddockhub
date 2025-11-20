@@ -11,7 +11,7 @@ import Typography from '@/components/ui/typography'
 import {
   OverlayMetric,
   usePaddockBuilderStore,
-} from '@/store/use-paddock-builder-store'
+} from '@/stores/use-paddock-builder-store'
 
 const OVERLAY_INDICES: { id: OverlayMetric; label: string }[] = [
   { id: 'BIOMASS_T_HA', label: '🌱 Biomass' },

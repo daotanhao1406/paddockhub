@@ -15,7 +15,7 @@ import { Calculator, Info } from 'lucide-react'
 
 import Typography from '@/components/ui/typography'
 
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
 import { FeedResultsTable } from './feed-results-table' // (File tiếp theo)
 

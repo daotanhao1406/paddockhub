@@ -17,7 +17,7 @@ import { toISODateFlexible } from '@/lib/paddock-utils'
 
 import { TrendsFilters } from '@/components/paddock-builder/trends-chart/trends-filters'
 
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
 // Sử dụng một bảng màu (palette) cứng thay vì các biến CSS của shadcn
 const PALETTE = [
