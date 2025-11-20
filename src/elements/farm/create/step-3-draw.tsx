@@ -1,16 +1,9 @@
 'use client'
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Checkbox,
-  Chip,
-} from '@heroui/react'
+import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react'
 import { Input } from '@heroui/react'
 
-import { usePaddockStore } from '@/store/use-paddock-store'
+import { usePaddockStore } from '@/stores/use-paddock-store'
 
 // Component này nhận mapComponent như một prop
 type Step3Props = {
@@ -22,8 +15,6 @@ export function Step3Draw({ mapComponent }: Step3Props) {
     paddocks,
     nextPaddockName,
     setNextPaddockName,
-    showLabels,
-    setShowLabels,
     baseLayerType,
     setBaseLayerType,
   } = usePaddockStore()
@@ -100,13 +91,6 @@ export function Step3Draw({ mapComponent }: Step3Props) {
               🛰️ Imagery only
             </Button>
             <div className='flex-grow'></div>
-            <Checkbox
-              size='sm'
-              isSelected={showLabels}
-              onValueChange={setShowLabels}
-            >
-              Show labels
-            </Checkbox>
           </div>
           {mapComponent}
         </div>

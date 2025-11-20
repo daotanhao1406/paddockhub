@@ -5,6 +5,8 @@ import { Suspense } from 'react'
 
 import '@/styles/globals.css'
 
+import LoadingComponent from '@/components/ui/loading-component'
+
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 import { siteConfig } from '@/constant/config'
 
@@ -64,8 +66,8 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning className={`${outfit.variable} light`}>
       <body className='min-h-screen bg-background antialiased font-outfit'>
-        <div className='mx-auto relative flex flex-col min-h-screen w-full'>
-          <Suspense fallback='Loading...'>{children}</Suspense>
+        <div className='mx-auto relative flex flex-col min-h-screen w-full max-w-7xl'>
+          <Suspense fallback={<LoadingComponent />}>{children}</Suspense>
         </div>
       </body>
     </html>

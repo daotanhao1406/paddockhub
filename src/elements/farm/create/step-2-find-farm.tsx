@@ -4,7 +4,7 @@ import { Button, Card, CardBody, CardHeader, Input } from '@heroui/react'
 import { Search } from 'lucide-react'
 import { useState } from 'react'
 
-import { usePaddockStore } from '@/store/use-paddock-store'
+import { usePaddockStore } from '@/stores/use-paddock-store'
 
 export function Step2FindFarm() {
   const { setMapCommand } = usePaddockStore()

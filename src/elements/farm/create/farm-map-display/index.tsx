@@ -1,9 +1,6 @@
 'use client'
 
-// Imports của React
-// Imports của Turf.js (import riêng lẻ)
 import {
-  addToast,
   Button,
   Input,
   Modal,
@@ -13,32 +10,27 @@ import {
   ModalHeader,
 } from '@heroui/react'
 import area from '@turf/area'
-import centerOfMass from '@turf/center-of-mass'
-// Imports của GeoJSON
 import { Feature, Polygon } from 'geojson'
 import L, { LatLngExpression } from 'leaflet'
-import { useEffect, useState } from 'react'
-// Imports của Leaflet & React-Leaflet
-import {
-  FeatureGroup,
-  LayerGroup,
-  MapContainer,
-  Marker,
-  useMap,
-} from 'react-leaflet'
-// Imports của Leaflet Draw & Wrapper
+import { Tag } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { FeatureGroup, MapContainer } from 'react-leaflet'
 import { EditControl } from 'react-leaflet-draw'
 import 'leaflet-defaulticon-compatibility'
 
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-draw/dist/leaflet.draw.css'
-// Fix lỗi icon (rất quan trọng)
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css'
 
-import BaseMapManager from '@/components/paddock-builder/map-display/base-map-manager'
+import BaseMapLayer from '@/components/map-display/base-map-layer'
+import { LeafletControl } from '@/components/map-display/leaflet-control'
+import { MapActionButton } from '@/components/map-display/map-action-button'
+import PaddockLabelLayer from '@/components/map-display/paddock-label-layer'
 import Typography from '@/components/ui/typography'
 
-import { usePaddockStore } from '@/store/use-paddock-store'
+import { usePaddockStore } from '@/stores/use-paddock-store'
+
+import MapCommandExecutor from '@/elements/farm/create/farm-map-display/map-command-executor'
 
 // --- Định nghĩa kiểu (Type) ---
 
@@ -47,84 +39,12 @@ interface PaddockLayer extends L.Polygon {
   feature?: Feature<Polygon>
 }
 
-// --- Các component con nội bộ ---
-
-/**
- * Component con thực thi các lệnh điều khiển map từ bên ngoài
- * (ví dụ: từ ô tìm kiếm).
- */
-function MapCommandExecutor() {
-  const map = useMap()
-  const { mapCommand, clearMapCommand } = usePaddockStore()
-
-  useEffect(() => {
-    if (!mapCommand) return
-
-    switch (mapCommand.id) {
-      case 'setView':
-        map.setView(mapCommand.payload.center, mapCommand.payload.zoom)
-        break
-      case 'fitBounds':
-        map.fitBounds(mapCommand.payload)
-        break
-    }
-    clearMapCommand() // Xóa lệnh sau khi thực thi
-  }, [map, mapCommand, clearMapCommand])
-
-  return null // Không render UI
-}
-
-/**
- * Component con render các nhãn (label) cho paddock.
- * EditControl không tự render label, nên ta phải làm thủ công
- * bằng cách đọc state từ Zustand.
- */
-function PaddockLabelRenderer() {
-  const { paddocks, showLabels } = usePaddockStore()
-
-  if (!showLabels) {
-    return null
-  }
-
-  return (
-    // Đặt label vào 'overlayPane' để nó luôn ở trên
-    <LayerGroup pane='overlayPane'>
-      {paddocks.map((paddock) => {
-        const id = paddock.properties?.paddock_id
-        let centroid: LatLngExpression | null = null
-        try {
-          // Dùng hàm import riêng lẻ
-          const c = centerOfMass(paddock).geometry.coordinates
-          centroid = [c[1], c[0]] // Turf: [lng, lat], Leaflet: [lat, lng]
-        } catch {
-          addToast({
-            description: `Failed to calculate centroid for ${id}`,
-            color: 'danger',
-          })
-        }
-
-        if (!centroid) return null
-
-        return (
-          <Marker
-            key={id}
-            position={centroid}
-            interactive={false}
-            icon={L.divIcon({
-              className: 'paddock-label', // Style từ globals.css
-              html: `<span style="display: block-inline">${paddock.properties?.name || 'Paddock'}</span>`,
-            })}
-          />
-        )
-      })}
-    </LayerGroup>
-  )
-}
-
 // --- Component MapDisplay chính ---
 
-export function MapDisplay() {
+export default function FarmMapDisplay() {
   const {
+    baseLayerType,
+    paddocks,
     addPaddock,
     removePaddockById,
     updatePaddockById,
@@ -136,8 +56,9 @@ export function MapDisplay() {
   const [pendingPaddock, setPendingPaddock] = useState<PaddockLayer | null>(
     null,
   )
-  const [modalPaddockName, setModalPaddockName] = useState('')
-
+  const [modalPaddockName, setModalPaddockName] = useState<string>('')
+  const [showLabels, setShowLabels] = useState<boolean>(true)
+  const featureGroupRef = useRef<L.FeatureGroup | null>(null)
   const defaultCenter: LatLngExpression = [20, 0]
 
   // --- HÀM XỬ LÝ SỰ KIỆN CỦA LEAFLET-DRAW ---
@@ -258,16 +179,28 @@ export function MapDisplay() {
       className='rounded-md border z-0'
     >
       {/* 1. Component quản lý Base map (satellite, hybrid) */}
-      <BaseMapManager />
+      <BaseMapLayer hasBoundariesAndLabels={baseLayerType === 'hybrid'} />
 
       {/* 2. Component thực thi lệnh (setView, fitBounds) */}
       <MapCommandExecutor />
 
       {/* 3. Component render nhãn (labels) */}
-      <PaddockLabelRenderer />
+      <PaddockLabelLayer
+        featureGroupRef={featureGroupRef}
+        showLabels={showLabels}
+        dependencies={paddocks}
+      />
 
       {/* 4. Layer chứa các Paddock (do EditControl quản lý) */}
-      <FeatureGroup>
+      <FeatureGroup ref={featureGroupRef}>
+        <LeafletControl position='topleft'>
+          <MapActionButton
+            icon={Tag}
+            label='Show paddock name'
+            isActive={showLabels}
+            onClick={() => setShowLabels((prev) => !prev)}
+          />
+        </LeafletControl>
         <EditControl
           position='topleft'
           onCreated={handleCreated}

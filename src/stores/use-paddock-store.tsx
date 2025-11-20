@@ -38,7 +38,6 @@ type PaddockState = {
   farmDetails: FarmDetails
   paddocks: Feature<Polygon>[]
   nextPaddockName: string
-  showLabels: boolean
   mapCommand: MapCommand
   baseLayerType: BaseLayerType
 
@@ -47,7 +46,6 @@ type PaddockState = {
   removePaddockById: (id: string) => void
   updatePaddockById: (id: string, updatedFeature: Feature<Polygon>) => void
   setNextPaddockName: (name: string) => void
-  setShowLabels: (show: boolean) => void
   setMapCommand: (command: MapCommand) => void
   clearMapCommand: () => void
   setBaseLayerType: (type: BaseLayerType) => void
@@ -105,7 +103,6 @@ export const usePaddockStore = create<PaddockState>((set, get) => ({
     })),
 
   setNextPaddockName: (name) => set({ nextPaddockName: name }),
-  setShowLabels: (show) => set({ showLabels: show }),
   setMapCommand: (command) => set({ mapCommand: command }),
   clearMapCommand: () => set({ mapCommand: null }),
   setBaseLayerType: (type) => set({ baseLayerType: type }),

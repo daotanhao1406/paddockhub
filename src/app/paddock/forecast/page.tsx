@@ -27,7 +27,7 @@ import { NetChart } from '@/components/forecast/net-chart'
 import { OutlookTable } from '@/components/forecast/outlook-table'
 import { StatusBox } from '@/components/forecast/status-box'
 
-import { usePaddockBuilderStore } from '@/store/use-paddock-builder-store'
+import { usePaddockBuilderStore } from '@/stores/use-paddock-builder-store'
 
 // Cần tạo một component skeleton (hoặc div) để hiển thị khi bản đồ đang tải
 const MapLoadingSkeleton = () => (
